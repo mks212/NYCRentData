@@ -11,7 +11,7 @@ class RentPipeline(object):
 	def __init__(self):
 		self.filename = 'rent_info.csv'
 	def open_spider(self, spider):
-		self.csvfile = open(self.filename, 'wb')
+		self.csvfile = open(self.filename, 'ab') #open in append mode so it adds instead of overwrites
 		self.exporter = CsvItemExporter(self.csvfile)
 		self.exporter.start_exporting()
 	def close_spider(self, spider):

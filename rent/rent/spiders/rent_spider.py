@@ -2,33 +2,27 @@ from scrapy import Spider
 from rent.items import RentItem
 from scrapy import Request
 import re
-import os
-import pandas as pd
 
 class RentSpider(Spider):
+	
 	name = "rent_spider"
 	allowed_urls = ['https://www.renthop.com']
 	start_urls = ['https://www.renthop.com/search/nyc']
 
 	def parse(self, response):
-	 	
+
 		pages = response.xpath('//span[@class="d-none d-md-inline-block"]')
 		pages = pages[2].extract()
 		tot_pages =  int(re.findall('\d+', pages)[3])
 
-		#if first scrape start from page 1, however, if rent_info exists, get start page from there
-		if os.path.isfile('../rent_info.csv'):
-			start_page = pd.read_csv('../rent_info.csv')
-			start_page = start_page['page'].max() + 1
-		else:
-			start_page = 1
-		result_urls = ['https://www.renthop.com/search/nyc?&{}'.format(x) for \
-		x in range(start_page,tot_pages+1)]
+		result_urls = ['https://www.renthop.com/search/nyc?&page={}'.format(x) for \
+		x in range(1,tot_pages+1)]
 
-		for url in result_urls[:1]:
+		for url in result_urls:
 			yield Request(url=url, callback=self.parse_result_page)
 
 	def parse_result_page(self, response):
+
 		#keep track of current page in case of interruption
 		curr_page = response.xpath('//span[@class="d-none d-md-inline-block"]')
 		curr_page = curr_page[2].extract()
@@ -42,10 +36,14 @@ class RentSpider(Spider):
 
 			#address within listing:
 			address = listing.xpath('./div/a/text()').extract_first()
-			address = address.replace(",", "")
+
+			try:
+				address = address.replace(",", "").strip()
+			except:
+				address = address.strip()
 
 			neighborhood = listing.xpath('./div/div[2]/text()').extract_first()
-			neighborhood = neighborhood.replace(",", ";").strip()  #reoplace commas for CSV export
+			neighborhood = neighborhood.replace(",", ";").strip()  #replace commas for CSV export
 			
 			rent = listing.xpath('./div/table/tr/td/text()').extract_first()
 			rent = re.findall('\d+', rent)
@@ -69,7 +67,10 @@ class RentSpider(Spider):
 				pass
 			
 			amenities = listing.xpath('./div/div[1]/text()').extract()[-1]
-			amenities = amenities.replace("·", ";").strip()
+			try:
+				amenities = amenities.replace("·", ";").strip()
+			except:
+				amenities = amenities.strip()
 
 			item = RentItem()
 			item['page'] = page
