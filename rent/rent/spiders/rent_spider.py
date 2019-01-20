@@ -2,6 +2,8 @@ from scrapy import Spider
 from rent.items import RentItem
 from scrapy import Request
 import re
+import os
+import pandas as pd
 
 class RentSpider(Spider):
 	name = "rent_spider"
@@ -13,7 +15,15 @@ class RentSpider(Spider):
 		pages = response.xpath('//span[@class="d-none d-md-inline-block"]')
 		pages = pages[2].extract()
 		tot_pages =  int(re.findall('\d+', pages)[3])
-		result_urls = ['https://www.renthop.com/search/nyc?&{}'.format(x) for x in range(1,tot_pages+1)]
+
+		#if first scrape start from page 1, however, if rent_info exists, get start page from there
+		if os.path.isfile('../rent_info.csv'):
+			start_page = pd.read_csv('../rent_info.csv')
+			start_page = start_page['page'].max() + 1
+		else:
+			start_page = 1
+		result_urls = ['https://www.renthop.com/search/nyc?&{}'.format(x) for \
+		x in range(start_page,tot_pages+1)]
 
 		for url in result_urls[:1]:
 			yield Request(url=url, callback=self.parse_result_page)
