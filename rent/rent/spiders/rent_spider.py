@@ -15,17 +15,21 @@ class RentSpider(Spider):
 		tot_pages =  int(re.findall('\d+', pages)[3])
 		result_urls = ['https://www.renthop.com/search/nyc?&{}'.format(x) for x in range(1,tot_pages+1)]
 
-   		for url in result_urls[:1]:
-        	yield Request(url=url, callback=self.parse_result_page)
+		for url in result_urls[:1]:
+			yield Request(url=url, callback=self.parse_result_page)
 
-		def parse_result_page(self, response):
-			#keep track of current page in case of interruption
-			curr_page = response.xpath('//span[@class="d-none d-md-inline-block"]')
-			curr_page = curr_page[2].extract()
-			curr_page = int(re.findall('\d+', curr_page)[2])
+	def parse_result_page(self, response):
+		#keep track of current page in case of interruption
+		curr_page = response.xpath('//span[@class="d-none d-md-inline-block"]')
+		curr_page = curr_page[2].extract()
+		curr_page = int(re.findall('\d+', curr_page)[2])
 
-			#listing tag
-			listings = response.xpath('//div[@class="search-info pr-3 pl-3 pr-md-0 pl-md-4"]')     
+		#listing tag
+		listings = response.xpath('//div[@class="search-info pr-3 pl-3 pr-md-0 pl-md-4"]')
+
+		for listing in listings:     
+			page = curr_page #in case of interruption
+
 			#address within listing:
 			address = listing.xpath('./div/a/text()').extract_first()
 			address = address.replace(",", "")
@@ -57,6 +61,16 @@ class RentSpider(Spider):
 			amenities = listing.xpath('./div/div[1]/text()').extract()[-1]
 			amenities = amenities.replace("·", ";").strip()
 
+			item = RentItem()
+			item['page'] = page
+			item['address'] = address
+			item['neighborhood'] = neighborhood
+			item['rent'] = rent
+			item['beds'] = beds
+			item['baths'] = baths
+			item['broker'] = broker
+			item['amenities'] = amenities
+			yield item
 
 
 

@@ -10,12 +10,13 @@ import scrapy
 
 class RentItem(scrapy.Item):
     # define the fields for your item here like:
+    page = scrapy.Field()
     address = scrapy.Field()
     neighborhood = scrapy.Field()
     rent = scrapy.Field()
     beds = scrapy.Field()
     baths = scrapy.Field()
     broker = scrapy.Field()
-    amenties = scrapy.Field()
+    amenities = scrapy.Field()
    
     
