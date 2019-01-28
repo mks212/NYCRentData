@@ -1,0 +1,1 @@
+Rental data for New York City scraped on 1/20/19. Analysis performed on average rent for all apartments, and then further isolated into two test cases. The first looks at studios on the Upper West Side, the second looks at 3 bedroom apartments in Greenpoint.
